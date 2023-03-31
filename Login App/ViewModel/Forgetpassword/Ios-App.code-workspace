@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../../../Ios-App"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../Login AppTests"
+		},
+		{
+			"path": "../../../Login AppUITests"
+		},
+		{
+			"path": "../../../Pods"
+		},
+		{
+			"path": "../../../Transportyni App.xcodeproj"
+		},
+		{
+			"path": "../../../Transportyni App.xcworkspace"
+		}
+	],
+	"settings": {}
+}
