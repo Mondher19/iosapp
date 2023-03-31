@@ -37,12 +37,12 @@ jobs:
 
       # Build the app
       - name: Build the app
-        run: xcodebuild -workspace MyApp.xcworkspace -scheme MyApp -configuration Release clean archive -archivePath ${{ env.main_project_module }}/build/MyApp.xcarchive
+        run: xcodebuild -workspace Login\ App.xcworkspace -scheme Login\ App -configuration Release clean archive -archivePath Login\ App/build/MyApp.xcarchive
 
       # Export the IPA file
       - name: Export the IPA file
-        run: xcodebuild -exportArchive -archivePath ${{ env.main_project_module }}/build/MyApp.xcarchive -exportPath ${{ env.main_project_module }}/build/MyApp.ipa -exportOptionsPlist ExportOptions.plist
+        run: xcodebuild -exportArchive -archivePath Login\ App/build/MyApp.xcarchive -exportPath Login\ App/build/MyApp.ipa -exportOptionsPlist ExportOptions.plist
 
       # Upload the IPA file
       - name: Upload IPA - ${{ env.repository_name }}
-        run: transporter upload -f ${{ env.main_project_module }}/build/MyApp.ipa -u [App Store Connect Username] -p [App Store Connect Password]
+        run: transporter upload -f Login\ App/build/MyApp.ipa -u [App Store Connect Username] -p [App Store Connect Password]
