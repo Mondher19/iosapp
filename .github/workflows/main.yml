@@ -22,6 +22,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: main
 
       # Set Current Date As Env Variable
       - name: Set current date as env variable
@@ -37,9 +39,12 @@ jobs:
 
       # Build the app
       - name: Build the app
-        run: xcodebuild -workspace Login\ App.xcworkspace -scheme Login\ App -configuration Release clean archive -archivePath Login\ App/build/MyApp.xcarchive -branch main
-
+        run: xcodebuild -workspace Login\ App.xcworkspace -scheme Login\ App -configuration Release clean archive -archivePath Login\ App/build/MyApp.xcarchive
 
       # Export the IPA file
       - name: Export the IPA file
-        run: xcodebuild -exportArchive -archivePath Login\ App/build/MyApp.xcarchive -exportPath Login\ App/build/MyApp.ipa -exportOptionsPlist ExportOptions.plist -branch main
+        run: xcodebuild -exportArchive -archivePath Login\ App/build/MyApp.xcarchive -exportPath Login\ App/build/MyApp.ipa -exportOptionsPlist ExportOptions.plist
+
+      # Upload the IPA file
+      - name: Upload IPA - ${{ env.repository_name }}
+        run: transporter upload -f Login\ App/build/MyApp.ipa -u [App Store Connect Username] -p [App Store Connect Password]
