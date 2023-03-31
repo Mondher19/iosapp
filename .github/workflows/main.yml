@@ -2,10 +2,10 @@ name: Generated IPA (Upload)
 
 env:
   # The name of the main module repository
-  main_project_module: YourProjectName.xcodeproj
+  main_project_module: Login App
 
   # The name of the App Store
-  appstore_name: Your App Store
+  appstore_name: Build Lab
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       # Set Current Date As Env Variable
       - name: Set current date as env variable
         run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
@@ -30,25 +30,47 @@ jobs:
       # Set Repository Name As Env Variable
       - name: Set repository name as env variable
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
-      
-      # Install Xcode and other dependencies
-      - name: Install Xcode and other dependencies
+
+      # Install Xcode
+      - name: Install Xcode
         run: |
-          sudo gem install cocoapods
           sudo xcode-select --switch /Applications/Xcode_13.app
+
+      # Install Pods
+      - name: Install Pods
+        run: |
+          cd ${{ env.main_project_module }}
           pod install
 
-      # Run Build Project
-      - name: Build Xcode project
-        run: xcodebuild -project ${{ env.main_project_module }} -scheme YourSchemeName -configuration Release archive -archivePath ${{ env.main_project_module }}/build/YourApp
+      # Build Project
+      - name: Build project
+        run: |
+          xcodebuild -workspace ${{ env.main_project_module }}.xcworkspace \
+            -scheme ${{ env.main_project_module }} \
+            -configuration Release \
+            clean build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
 
-      # Export IPA Release
-      - name: Export IPA release
-        run: xcodebuild -exportArchive -archivePath ${{ env.main_project_module }}/build/YourApp.xcarchive -exportOptionsPlist exportOptions.plist -exportPath ${{ env.main_project_module }}/build/outputs/ipa
+      # Sign IPA Release
+      - name: Sign IPA release
+        run: |
+          codesign --force --sign "iPhone Developer" \
+            --keychain "/Users/runner/Library/Keychains/login.keychain-db" \
+            --entitlements "${{ env.main_project_module }}/Entitlements.plist" \
+            "${{ env.main_project_module }}/build/Release-iphoneos/${{ env.main_project_module }}.app"
+
+      # Create IPA Release
+      - name: Create IPA release
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "${{ env.main_project_module }}/build/Release-iphoneos/${{ env.main_project_module }}.xcarchive" \
+            -exportPath "${{ env.main_project_module }}/build/Release-iphoneos/" \
+            -exportOptionsPlist "${{ env.main_project_module }}/ExportOptions.plist"
 
       # Upload Artifact Build
       - name: Upload IPA Release - ${{ env.repository_name }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.date_today }} - ${{ env.appstore_name }} - ${{ env.repository_name }} - IPA(s) release generated
-          path: ${{ env.main_project_module }}/build/outputs/ipa/
+          name: ${{ env.date_today }} - ${{ env.appstore_name }} - ${{ env.repository_name }} - IPA release generated
+          path: ${{ env.main_project_module }}/build/Release-iphoneos/*.ipa
