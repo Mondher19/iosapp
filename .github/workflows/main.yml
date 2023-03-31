@@ -35,24 +35,14 @@ jobs:
       - name: Install Xcode CLI tools
         run: xcode-select --install || true
 
-      # Set Up Ruby
-      - name: Set Up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.6
+      # Build the app
+      - name: Build the app
+        run: xcodebuild -workspace MyApp.xcworkspace -scheme MyApp -configuration Release clean archive -archivePath ${{ env.main_project_module }}/build/MyApp.xcarchive
 
-      # Install fastlane
-      - name: Install fastlane
-        run: gem install fastlane -NV
+      # Export the IPA file
+      - name: Export the IPA file
+        run: xcodebuild -exportArchive -archivePath ${{ env.main_project_module }}/build/MyApp.xcarchive -exportPath ${{ env.main_project_module }}/build/MyApp.ipa -exportOptionsPlist ExportOptions.plist
 
-      # Run fastlane
-      - name: Run fastlane
-        run: fastlane release
-
-      # Upload Artifact Build
-      # Noted For Output [main_project_module]/build/outputs/apk/debug/
+      # Upload the IPA file
       - name: Upload IPA - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.date_today }} - ${{ env.appstore_name }} - ${{ env.repository_name }} - IPA generated
-          path: ${{ env.main_project_module }}/build/outputs/MyApp.ipa
+        run: transporter upload -f ${{ env.main_project_module }}/build/MyApp.ipa -u [App Store Connect Username] -p [App Store Connect Password]
