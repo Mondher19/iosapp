@@ -5,7 +5,7 @@ env:
   main_project_module: Login App
 
   # The name of the App Store
-  appstore_name: Build Lab
+  appstore_name: Frogobox ID
 
 on:
   push:
@@ -31,46 +31,28 @@ jobs:
       - name: Set repository name as env variable
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
-      # Install Xcode
-      - name: Install Xcode
-        run: |
-          sudo xcode-select -p
+      # Install Xcode CLI tools
+      - name: Install Xcode CLI tools
+        run: xcode-select --install || true
 
-      # Install Pods
-      - name: Install Pods
-        run: |
-          cd ${{ env.main_project_module }}
-          pod install
+      # Set Up Ruby
+      - name: Set Up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.6
 
-      # Build Project
-      - name: Build project
-        run: |
-          xcodebuild -workspace ${{ env.main_project_module }}.xcworkspace \
-            -scheme ${{ env.main_project_module }} \
-            -configuration Release \
-            clean build \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+      # Install fastlane
+      - name: Install fastlane
+        run: gem install fastlane -NV
 
-      # Sign IPA Release
-      - name: Sign IPA release
-        run: |
-          codesign --force --sign "iPhone Developer" \
-            --keychain "/Users/runner/Library/Keychains/login.keychain-db" \
-            --entitlements "${{ env.main_project_module }}/Entitlements.plist" \
-            "${{ env.main_project_module }}/build/Release-iphoneos/${{ env.main_project_module }}.app"
-
-      # Create IPA Release
-      - name: Create IPA release
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath "${{ env.main_project_module }}/build/Release-iphoneos/${{ env.main_project_module }}.xcarchive" \
-            -exportPath "${{ env.main_project_module }}/build/Release-iphoneos/" \
-            -exportOptionsPlist "${{ env.main_project_module }}/ExportOptions.plist"
+      # Run fastlane
+      - name: Run fastlane
+        run: fastlane release
 
       # Upload Artifact Build
-      - name: Upload IPA Release - ${{ env.repository_name }}
+      # Noted For Output [main_project_module]/build/outputs/apk/debug/
+      - name: Upload IPA - ${{ env.repository_name }}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.date_today }} - ${{ env.appstore_name }} - ${{ env.repository_name }} - IPA release generated
-          path: ${{ env.main_project_module }}/build/Release-iphoneos/*.ipa
+          name: ${{ env.date_today }} - ${{ env.appstore_name }} - ${{ env.repository_name }} - IPA generated
+          path: ${{ env.main_project_module }}/build/outputs/MyApp.ipa
