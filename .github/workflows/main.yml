@@ -34,7 +34,7 @@ jobs:
       # Install Xcode
       - name: Install Xcode
         run: |
-          sudo xcode-select --switch /Applications/Xcode_13.app
+          sudo xcode-select -p
 
       # Install Pods
       - name: Install Pods
