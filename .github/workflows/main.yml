@@ -1,34 +1,21 @@
-name: iOS Build Workflow
+name: CICD Demo
 on:
   push:
     branches:
-      - main
+      - ${{ env.BRANCH_NAME }}
+  pull_request:
+    branches:
+      - ${{ env.BRANCH_NAME }}
 jobs:
-  build:
+  build-and-test:
     runs-on: macos-latest
-    env:
-      WORKSPACE: YourWorkspace.xcworkspace
-      SCHEME: YourScheme
-      SIMULATOR: "platform=iOS Simulator,name=iPhone 12 Pro,OS=15.3"
     steps:
       - uses: actions/checkout@v2
-      - name: Install Xcode
-        uses: github/actions/setup-xcode@v2
-        with:
-          version: '13.2.1'
-      - name: Install Dependencies
-        run: |
-          if [ -e Podfile ]; then
-            gem install bundler
-            bundle install
-            pod install
-          else
-            echo "No Podfile found, skipping dependency installation."
-          fi
-      - name: Build
-        run: |
-          xcodebuild clean build \
-            -workspace $WORKSPACE \
-            -scheme $SCHEME \
-            -sdk iphonesimulator \
-            -destination "$SIMULATOR"
+      - name: Select Xcode
+        run: sudo Xcode-select -switch /Applications/Xcode_13.2.1.app
+      - name: Build & Test
+        run: xcodebuild clean build test -workspace ${{ env.WORKSPACE_NAME }} -scheme ${{ env.SCHEME_NAME }} -destination '${{ env.SIMULATOR_DESTINATION }}'
+    env:
+      WORKSPACE_NAME: ProjectName.xcworkspace
+      SCHEME_NAME: SchemeName
+      SIMULATOR_DESTINATION: 'platform=iOS Simulator,name=iPhone 12 Pro,OS=15.2'
